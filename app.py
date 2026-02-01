@@ -14,7 +14,7 @@ st.set_page_config(
 df = pd.read_csv("https://raw.githubusercontent.com/vqrca/dashboard_salarios_dados/refs/heads/main/dados-imersao-final.csv")
 
 # --- Barra Lateral (Filtros) ---
-st.sidebar.header("🔍 Filtros")
+st.sidebar.header("Filtros")
 
 # Filtro de Ano
 anos_disponiveis = sorted(df['ano'].unique())
@@ -42,7 +42,7 @@ df_filtrado = df[
 ]
 
 # --- Conteúdo Principal ---
-st.title("🎲 Dashboard de Análise de Salários na Área de Dados")
+st.title("Análise de Salários na Área de Dados")
 st.markdown("Explore os dados salariais na área de dados nos últimos anos. Utilize os filtros à esquerda para refinar sua análise.")
 
 # --- Métricas Principais (KPIs) ---
@@ -77,6 +77,7 @@ with col_graf1:
             x='usd',
             y='cargo',
             orientation='h',
+            color_discrete_sequence=px.colors.sequential.RdBu,
             title="Top 10 cargos por salário médio",
             labels={'usd': 'Média salarial anual (USD)', 'cargo': ''}
         )
@@ -92,6 +93,7 @@ with col_graf2:
             x='usd',
             nbins=30,
             title="Distribuição de salários anuais",
+            color_discrete_sequence=px.colors.sequential.RdBu,
             labels={'usd': 'Faixa salarial (USD)', 'count': ''}
         )
         grafico_hist.update_layout(title_x=0.1)
@@ -109,6 +111,7 @@ with col_graf3:
             remoto_contagem,
             names='tipo_trabalho',
             values='quantidade',
+            color_discrete_sequence=px.colors.sequential.RdBu,
             title='Proporção dos tipos de trabalho',
             hole=0.5
         )
@@ -125,13 +128,32 @@ with col_graf4:
         grafico_paises = px.choropleth(media_ds_pais,
             locations='residencia_iso3',
             color='usd',
-            color_continuous_scale='rdylgn',
+            color_continuous_scale='RdYlBu',
             title='Salário médio de Cientista de Dados por país',
             labels={'usd': 'Salário médio (USD)', 'residencia_iso3': 'País'})
         grafico_paises.update_layout(title_x=0.1)
         st.plotly_chart(grafico_paises, use_container_width=True)
     else:
         st.warning("Nenhum dado para exibir no gráfico de países.")
+
+col_graf5= st.columns(1)
+
+with col_graf5:
+    if not df_filtrado.empty:
+        top_cargos = df_filtrado.groupby('cargo')['usd'].mean().nlargest(10).sort_values(ascending=True).reset_index()
+        grafico_cargos = px.bar(
+            top_cargos,
+            x='usd',
+            y='cargo',
+            orientation='h',
+            color_discrete_sequence=px.colors.sequential.RdBu,
+            title="Top 10 cargos por salário médio",
+            labels={'usd': 'Média salarial anual (USD)', 'cargo': ''}
+        )
+        grafico_cargos.update_layout(title_x=0.1, yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(grafico_cargos, use_container_width=True)
+    else:
+        st.warning("Nenhum dado para exibir no gráfico de cargos.")
 
 # --- Tabela de Dados Detalhados ---
 st.subheader("Dados Detalhados")
